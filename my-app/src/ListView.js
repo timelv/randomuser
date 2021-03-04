@@ -40,11 +40,9 @@ export default class ListView extends React.Component {
 
   matchFilter(allItems, query, threshold) {
     // Create an array of properties that are defined in the query.
-    // For the example, it will be [food_type, neighborhood]
     const properties = Object.keys(query)
       .filter(key => query[key].trim().length > 0);
     // Create a comparison string for the query item.
-    // For the example, it will be “Mxicanmarketsquare”
     const queryComp = properties.map(p => query[p]);
     // Filter down to get the matching items.
     const matchingItems = allItems.filter((item) => {
@@ -54,6 +52,8 @@ export default class ListView extends React.Component {
       const itemComp = properties.map(p => item[p]);
       let totalScore = 0;
       for (let i = 0; i < itemComp.length; i++) {
+        //using third party library for scoring, no customer wants to pay to reinvent the wheel
+        //Mapping for easier comparison
         totalScore += itemComp[i].score(queryComp[i]);
         console.log(itemComp[i] + " : " + queryComp[i] + " score was: " + totalScore)
       }
@@ -98,11 +98,7 @@ export default class ListView extends React.Component {
       "email": searchVal
     };
 
-    //using third party library for search, no customer wants to pay to reinvent the wheel
-    //Mapping for easier comparison
     const filterResult = this.matchFilter(this.state.contacts.map((contact) => contact), filterQuery, 0.1);
-
-    console.log(filterResult)
     this.setState({
       performedSearch: true,
       filteredContacts: filterResult,
