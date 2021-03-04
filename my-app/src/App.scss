@@ -1,0 +1,79 @@
+$red: #932432;
+$redShadow: rgba(147, 36, 50, 0.5);
+$baseColor: #f3f3f3;
+
+body {
+  font-size: 0.8rem;
+}
+
+#root {
+  background-color: $baseColor;
+  padding-top: 30px;
+  min-height: 100vh;
+}
+
+.contactCard {
+  border-radius: 10px;
+  display: flex;
+  padding: 10px;
+  margin: 10px;
+  border: 2px solid #ccc;
+  cursor: pointer;
+}
+
+.contactImg {
+  margin-right: 30px;
+}
+
+.card-body img {
+  float: left;
+  border-radius: 0.25rem;
+}
+
+.App {
+  .backBtn {
+    line-height: 25px;
+    svg {
+      height: 25px;
+    }
+  }
+  a:hover {
+    color: $red;
+  }
+  .card {
+    background-color: $baseColor;
+    margin-bottom: 10px;
+    border: 0;
+    box-shadow: 0 0 0 0.1rem $redShadow;
+    color: $red;
+    .card-text {
+      margin-bottom: 0;
+    }
+  }
+
+  .card-title {
+    margin-bottom: 0;
+  }
+
+  .card-body {
+    padding: 0.5rem;
+  }
+
+  .btn-primary {
+    background-color: $red;
+    border-color: $red;
+    &:hover, &:not(:disabled):not(.disabled):active, &:focus {
+      background-color: $red;
+      border-color: $red;
+    }
+    &:focus, &.focus {
+      box-shadow: 0 0 0 0.2rem $redShadow;
+      border-color: $red;
+    }
+  }
+
+  .form-control:focus {
+    box-shadow: 0 0 0 0.2rem $redShadow;
+    border-color: $red;
+  }
+}
