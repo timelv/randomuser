@@ -2,7 +2,6 @@ import './App.scss';
 import React from 'react';
 import { getAllContacts } from './WebApiUtils';
 import Button from 'react-bootstrap/Button'
-import string_score from 'string_score';
 import Card from 'react-bootstrap/Card';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import InputGroup from 'react-bootstrap/InputGroup';
@@ -10,6 +9,7 @@ import FormControl from 'react-bootstrap/FormControl';
 import Container from 'react-bootstrap/Container';
 import Col from 'react-bootstrap/Col';
 import Row from 'react-bootstrap/Row';
+import { matchFilter } from './SearchUtils';
 import {
   BrowserRouter as Router,
   Switch,
@@ -26,7 +26,8 @@ export default class ListView extends React.Component {
       performedSearch: false,
       filteredContacts: [],
       sortDirection: "",
-      currentUser: {}
+      currentUser: {},
+      sortlabel: "ascending"
     };
   }
 
@@ -36,33 +37,6 @@ export default class ListView extends React.Component {
 
   async getContacts() {
     return await getAllContacts(10);
-  }
-
-  matchFilter(allItems, query, threshold) {
-    // Create an array of properties that are defined in the query.
-    const properties = Object.keys(query)
-      .filter(key => query[key].trim().length > 0);
-    // Create a comparison string for the query item.
-    const queryComp = properties.map(p => query[p]);
-    // Filter down to get the matching items.
-    const matchingItems = allItems.filter((item) => {
-      // Create a comparison string for the current
-      // item that consists of the property values
-      // that are included in the query.
-      const itemComp = properties.map(p => item[p]);
-      let totalScore = 0;
-      for (let i = 0; i < itemComp.length; i++) {
-        //using third party library for scoring, no customer wants to pay to reinvent the wheel
-        //Mapping for easier comparison
-        totalScore += itemComp[i].score(queryComp[i]);
-        console.log(itemComp[i] + " : " + queryComp[i] + " score was: " + totalScore)
-      }
-
-      // Compare itemComp string to the queryComp.
-      // Statement evaluates to true, then the item matches!
-      return totalScore >= threshold;
-    });
-    return matchingItems;
   }
 
   flattenObject(ob, prefix = false, result = null) {
@@ -98,7 +72,7 @@ export default class ListView extends React.Component {
       "email": searchVal
     };
 
-    const filterResult = this.matchFilter(this.state.contacts.map((contact) => contact), filterQuery, 0.1);
+    const filterResult = matchFilter(this.state.contacts.map((contact) => contact), filterQuery, 0.1);
     this.setState({
       performedSearch: true,
       filteredContacts: filterResult,
@@ -107,13 +81,15 @@ export default class ListView extends React.Component {
   }
 
   performSort() {
-    let { sortDirection } = this.state;
-    if (!sortDirection || sortDirection === "Descending") {
-      sortDirection = "Ascending";
+    let { sortDirection, sortlabel } = this.state;
+    if (!sortDirection || sortDirection === "descending") {
+      sortDirection = "ascending";
+      sortlabel = "descending";
     } else {
-      sortDirection = "Descending";
+      sortDirection = "descending";
+      sortlabel = "ascending";
     }
-    this.setState({ sortDirection });
+    this.setState({ sortDirection, sortlabel });
   }
 
   compare(a, b) {
@@ -127,16 +103,14 @@ export default class ListView extends React.Component {
     }
     return 0;
   }
-
+  
   render() {
     let { contacts } = this.state;
-    const { performedSearch, filteredContacts, searchTerm, sortDirection, currentUser } = this.state;
+    const { performedSearch, filteredContacts, searchTerm, sortDirection, currentUser, sortlabel } = this.state;
     contacts = performedSearch && searchTerm.length > 0 ? filteredContacts : contacts;
 
-    if (sortDirection && sortDirection === "Ascending") {
-      contacts = contacts.sort(this.compare);
-    } else {
-      contacts = contacts.sort(this.compare).reverse();
+    if (sortDirection) {
+      contacts = sortDirection === "ascending" ? contacts.sort(this.compare) : contacts.sort(this.compare).reverse();
     }
 
     return (
@@ -152,7 +126,7 @@ export default class ListView extends React.Component {
                       aria-label="Search"
                     />
                     <InputGroup.Append>
-                      <Button onClick={() => this.performSort()} type="submit" >{`Sort by name ${sortDirection ? sortDirection : "Ascending"}`}</Button>
+                      <Button onClick={() => this.performSort()} type="submit" >{`Sort by name ${sortlabel}`}</Button>
                     </InputGroup.Append>
                   </InputGroup>
 
@@ -161,7 +135,7 @@ export default class ListView extends React.Component {
                       <Row key={i} className="cardWrapper">
                         <Col md={12} lg={12}>
                           <Link onClick={() => this.setState({ currentUser: contact })} to="/details">
-                            <Card>
+                            <Card className="listingCard">
                               <Card.Body>
                                 <Row key={i} className="cardWrapper">
                                   <Col style={{ marginRight: "20px" }} md={1} lg={1}>
@@ -189,10 +163,10 @@ export default class ListView extends React.Component {
                       No search results...
                     </div>
                   ) : (
-                        <div>
-                          Fetching contact data...
-                        </div>
-                      )
+                    <div>
+                      Fetching contact data...
+                    </div>
+                  )
                   }
                 </Col>
               </Row>
@@ -218,13 +192,21 @@ export default class ListView extends React.Component {
                           <img src={currentUser["picture.large"]}></img>
                         </Col>
                         <Col md={12} lg={12}>
-                          <Card.Title>{currentUser["name.first"]} {currentUser["name.last"]}</Card.Title>
-                          <Card.Text>{currentUser.email}</Card.Text>
+                          <Card.Title>{currentUser["name.title"]} {currentUser["name.first"]} {currentUser["name.last"]}</Card.Title>
                           <Card.Text>
-                            {currentUser["location.street.name"]} {currentUser["location.street.number"]}
+                            <div className="personalDataWrapper">
+                              <div><strong>Personal data: </strong></div>
+                              <div>{currentUser.email}</div>
+                              <div>{currentUser.phone}</div>
+                              <div>Registered on: {new Date(currentUser["registered.date"]).toLocaleDateString('sv-SE')}</div>
+                            </div>
                           </Card.Text>
                           <Card.Text>
-                            {currentUser.phone}
+                            <div className="addressWrapper">
+                              <div><strong>Address: </strong></div>
+                              <div>{currentUser["location.country"]} {currentUser["location.state"]}</div>
+                              <div>{currentUser["location.city"]} {currentUser["location.street.name"]} {currentUser["location.street.number"]} {currentUser["location.street.postcode"]}</div>
+                            </div>
                           </Card.Text>
                         </Col>
                       </Row>

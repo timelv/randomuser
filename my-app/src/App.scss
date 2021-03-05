@@ -31,6 +31,10 @@ body {
 }
 
 .App {
+  .addressWrapper, .personalDataWrapper {
+    margin: 10px 0;
+  }
+
   .backBtn {
     line-height: 25px;
     svg {
@@ -49,10 +53,15 @@ body {
     .card-text {
       margin-bottom: 0;
     }
+    &.listingCard {
+      .card-title {
+        margin: 0;
+      }
+    }
   }
 
   .card-title {
-    margin-bottom: 0;
+    margin: 10px 0;
   }
 
   .card-body {
